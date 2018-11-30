@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "495500105468",
+    "firebase_url": "https://mingo-f8508.firebaseio.com",
+    "project_id": "mingo-f8508",
+    "storage_bucket": "mingo-f8508.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:495500105468:android:9d5cc9d1284f4c48",
+        "android_client_info": {
+          "package_name": "com.salib.mingo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "495500105468-bu0dofcq5bd7p4qcvptot00ung046snj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBn4NV0vU0WmEHN8yRj07LHvcH0BpFE-j8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -133,7 +133,7 @@ public class YoutubeAPIManager : MonoBehaviour {
         safeSearchFilter = "&safeSearch=" + safeSearch.ToString();
 
 
-        WWW call = new WWW("https://www.googleapis.com/youtube/v3/search/?q=" + keyword + "&category=" + category + "&maxResults=" + maxresult + "&type=video&part=snippet,id&key=" + APIKey + "" + orderFilter + "" + safeSearchFilter);
+        WWW call = new WWW("https://www.googleapis.com/youtube/v3/search/?q=" + keyword + "&videoCategoryId=" + category + "&maxResults=" + maxresult + "&type=video&part=snippet,id&key=" + APIKey + "" + orderFilter + "" + safeSearchFilter);
         yield return call;
         Debug.Log(call.url);
         JSONNode result = JSON.Parse(call.text);

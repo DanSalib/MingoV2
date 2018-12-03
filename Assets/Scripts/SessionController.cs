@@ -4,21 +4,29 @@ using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
 using Vuforia;
-
+using Firebase;
+using Firebase.Database;
+using Firebase.Unity.Editor;
 
 public class SessionController : MonoBehaviour {
 
     public Stopwatch SessionTimer = new Stopwatch();
     public Stopwatch CameraTimer = new Stopwatch();
     public Stopwatch LogTimer = new Stopwatch();
+    public Stopwatch ControllerTimer = new Stopwatch();
+
+    public NavigationController navController;
 
     public VuforiaBehaviour vuforiaBehaviour;
     private const float SESSION_TIMOUT = 60000;
     private const float TURN_OFF_CAMERA_DELAY = 60000;
     private const float LOG_DELAY = 60000;
-    public bool waitingForNextSession = true;
+    private const float CONTROLLER_CHECK_DELAY = 15000;
+    public bool waitingForNextSession;
     public Text text;
 
+    public GameObject ReconnectDialog;
+    public GameObject CheckMarkImage;
     public delegate void SessionReset();
     public static event SessionReset OnSessionReset;
     private Vector3 prevAccel;
@@ -26,25 +34,30 @@ public class SessionController : MonoBehaviour {
     private List<Vector3> accelerations = new List<Vector3>();
     // Use this for initialization
     void Start () {
-        SimplePlayback.OnFinished += StartSessionTimer;
-        SimplePlayback.OnReady += StopSessionTimer;
+        FirebaseApp app = FirebaseApp.DefaultInstance;
+        app.SetEditorDatabaseUrl("https://mingo-f8508.firebaseio.com/");
+        if (app.Options.DatabaseUrl != null)
+            app.SetEditorDatabaseUrl(app.Options.DatabaseUrl);
+
+        VideoOptionsController.OnPlay += StopSessionTimer;
         NavigationController.OnKeyPress += ResetSessionTimer;
-        waitingForNextSession = true;
         CameraTimer.Start();
         LogTimer.Start();
+        ControllerTimer.Start();
     }
 
     private void OnDestroy()
     {
-        SimplePlayback.OnFinished -= StartSessionTimer;
-        SimplePlayback.OnReady -= StopSessionTimer;
+        VideoOptionsController.OnPlay -= StopSessionTimer;
         NavigationController.OnKeyPress -= ResetSessionTimer;
     }
 
     // Update is called once per frame
     void Update () {
+        UnityEngine.Debug.Log(SessionTimer.ElapsedMilliseconds);
 		if(SessionTimer.IsRunning && SessionTimer.ElapsedMilliseconds > SESSION_TIMOUT)
         {
+            SessionTimer.Reset();
             ResetSession();
         }
 
@@ -76,12 +89,43 @@ public class SessionController : MonoBehaviour {
             accelerations = new List<Vector3>();
         }
 
+        if(waitingForNextSession && ControllerTimer.ElapsedMilliseconds > CONTROLLER_CHECK_DELAY)
+        {
+            if ((Input.GetJoystickNames().Length == 0 || !Input.GetJoystickNames()[0].Contains("Fortune Tech")) && !Input.GetKeyDown(KeyCode.O))
+            {
+                Firebase.Analytics.FirebaseAnalytics.LogEvent("controllerStatus", "connected", 0);
+                SessionData.ControllerStatus.Add(0);
+                ReconnectDialog.SetActive(true);
+            }
+            else
+            {
+                if(ReconnectDialog.activeInHierarchy)
+                {
+                    Firebase.Analytics.FirebaseAnalytics.LogEvent("controllerStatus", "connected", 1);
+                    SessionData.ControllerStatus.Add(1);
+
+                    StartCoroutine(ShowCheckMark());
+                }
+                ReconnectDialog.SetActive(false);
+                ControllerTimer.Restart();
+            }
+        }
+
         if(LogTimer.ElapsedMilliseconds > LOG_DELAY)
         {
-            Firebase.Analytics.FirebaseAnalytics.LogEvent("headsetStatus", "inSession", (!waitingForNextSession).ToString());
             LogTimer.Restart();
-            SessionData.SessionDuration += (long)LOG_DELAY;
+            Firebase.Analytics.FirebaseAnalytics.LogEvent("headsetStatus", "inSession", (waitingForNextSession ? 0 : 1));
+            SessionData.HeadsetStatus.Add(waitingForNextSession ? 0 : 1);
         }
+    }
+
+    private IEnumerator ShowCheckMark()
+    {
+        CheckMarkImage.SetActive(true);
+
+        yield return new WaitForSeconds(0.75f);
+
+        CheckMarkImage.SetActive(false);
     }
 
     private bool IsLast120AccelSame()
@@ -104,18 +148,23 @@ public class SessionController : MonoBehaviour {
 
     public void StartSessionTimer()
     {
+      //  UnityEngine.Debug.Log("Start!!!!!");
+        SessionTimer.Reset();
         SessionTimer.Start();
     }
 
     public void StopSessionTimer()
     {
+      //  UnityEngine.Debug.Log("Stop!!!!!");
         SessionTimer.Reset();
         SessionTimer.Stop();
     }
 
     public void ResetSessionTimer(NavigationController.directions d)
     {
-        if(SessionTimer.IsRunning)
+       // UnityEngine.Debug.Log("RESET!!!!!");
+
+        if (SessionTimer.IsRunning)
         {
             SessionTimer.Restart();
         }
@@ -125,9 +174,47 @@ public class SessionController : MonoBehaviour {
         }
     }
 
+    private struct SessionDataJson
+    {
+        public long SessionId;
+
+        public double SessionDuration;
+
+        public int VidCount;
+
+        public string SessionStart;
+
+        public string SessionEnd;
+
+        public List<int> HeadsetStatus;
+
+        public List<int> ControllerStatus;
+
+    }
+
     public void  ResetSession()
     {
-        Firebase.Analytics.FirebaseAnalytics.LogEvent("session", "sessionEnd", "sessionDuration="+SessionData.SessionDuration+ " sessionId="+SessionData.SessionId);
+        SessionData.SessionEnd = System.DateTime.UtcNow;
+        SessionData.SessionDuration = (SessionData.SessionEnd.Ticks - SessionData.SessionStart.Ticks) / System.TimeSpan.TicksPerSecond;
+        Firebase.Analytics.FirebaseAnalytics.LogEvent("session", "sessionEnd", SessionData.SessionDuration);
+        SessionDataJson data;
+        data.SessionId = SessionData.SessionId;
+        data.SessionDuration = SessionData.SessionDuration;
+        data.VidCount = SessionData.VidCount;
+        data.HeadsetStatus = SessionData.HeadsetStatus;
+        data.SessionStart = SessionData.SessionStart.ToString();
+        data.SessionEnd = SessionData.SessionEnd.ToString();
+        data.ControllerStatus = SessionData.ControllerStatus;
+
+        var json = JsonUtility.ToJson(data);
+        UnityEngine.Debug.Log(json);
+        var reference = FirebaseDatabase.DefaultInstance.RootReference;
+        var stats = reference.Child("SessionStats").Push().SetRawJsonValueAsync(json);
+        SessionData.HeadsetStatus.Clear();
+        SessionData.ControllerStatus.Clear();
+
+        SessionData.VidCount = 0;
+
         waitingForNextSession = true;
         vuforiaBehaviour.enabled = false;
         SessionTimer.Reset();

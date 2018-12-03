@@ -12,100 +12,196 @@ namespace YoutubeLight
 {
     public class RequestResolver : MonoBehaviour
     {
+        
         private const string RateBypassFlag = "ratebypass";
-        private const string SignatureQuery = "signature";
-        public IEnumerator DecryptDownloadUrl(Action<string> callback, VideoInfo videoInfo)
+        [HideInInspector]
+        public const string SignatureQuery = "signature";
+        [HideInInspector]
+        public string encryptedSignatureVideo;
+        [HideInInspector]
+        public string encryptedSignatureAudio;
+        [HideInInspector]
+        private string masterURLForVideo;
+        [HideInInspector]
+        private string masterURLForAudio;
+
+        public void SetMasterUrlForAudio(string url)
         {
-            IDictionary<string, string> queries = HTTPHelperYoutube.ParseQueryString(videoInfo.DownloadUrl);
-            if (queries.ContainsKey(SignatureQuery))
-            {
-                string encryptedSignature = queries[SignatureQuery];
-
-                //decrypted = GetDecipheredSignature( encryptedSignature);
-                //MagicHands.DecipherWithVersion(encryptedSignature, videoInfo.HtmlPlayerVersion);
-                //string jsUrl = string.Format("http://s.ytimg.com/yts/jsbin/{0}-{1}.js", videoInfo.HtmlscriptName, videoInfo.HtmlPlayerVersion);
-                string jsUrl = string.Format("http://s.ytimg.com/yts/jsbin/player{0}.js", videoInfo.HtmlPlayerVersion);
-                yield return StartCoroutine(DownloadUrl(jsUrl));
-                string js = downloadUrlResponse.data;
-                //Find "C" in this: var A = B.sig||C (B.s)
-                string functNamePattern = @"(\w+)=function\((\w+)\){\2=\2\.split\(\""\""\);"; //Regex Formed To Find Word or DollarSign
-
-                var funcName = Regex.Match(js, functNamePattern).Groups[1].Value;
-
-                if (funcName.Contains("$"))
-                {
-                    funcName = "\\" + funcName; //Due To Dollar Sign Introduction, Need To Escape
-                }
-
-                string funcPattern = @"(?!h\.)" + @funcName + @"=function\(\w+\)\{.*?\}"; //Escape funcName string
-                var funcBody = Regex.Match(js, funcPattern, RegexOptions.Singleline).Value; //Entire sig function
-                var lines = funcBody.Split(';'); //Each line in sig function
-
-                string idReverse = "", idSlice = "", idCharSwap = ""; //Hold name for each cipher method
-                string functionIdentifier = "";
-                string operations = "";
-
-                foreach (var line in lines.Skip(1).Take(lines.Length - 2)) //Matches the funcBody with each cipher method. Only runs till all three are defined.
-                {
-                    if (!string.IsNullOrEmpty(idReverse) && !string.IsNullOrEmpty(idSlice) &&
-                        !string.IsNullOrEmpty(idCharSwap))
-                    {
-                        break; //Break loop if all three cipher methods are defined
-                    }
-
-                    functionIdentifier = GetFunctionFromLine(line);
-                    string reReverse = string.Format(@"{0}:\bfunction\b\(\w+\)", functionIdentifier); //Regex for reverse (one parameter)
-                    string reSlice = string.Format(@"{0}:\bfunction\b\([a],b\).(\breturn\b)?.?\w+\.", functionIdentifier); //Regex for slice (return or not)
-                    string reSwap = string.Format(@"{0}:\bfunction\b\(\w+\,\w\).\bvar\b.\bc=a\b", functionIdentifier); //Regex for the char swap.
-
-                    if (Regex.Match(js, reReverse).Success)
-                    {
-                        idReverse = functionIdentifier; //If def matched the regex for reverse then the current function is a defined as the reverse
-                    }
-
-                    if (Regex.Match(js, reSlice).Success)
-                    {
-                        idSlice = functionIdentifier; //If def matched the regex for slice then the current function is defined as the slice.
-                    }
-
-                    if (Regex.Match(js, reSwap).Success)
-                    {
-                        idCharSwap = functionIdentifier; //If def matched the regex for charSwap then the current function is defined as swap.
-                    }
-                }
-
-                foreach (var line in lines.Skip(1).Take(lines.Length - 2))
-                {
-                    Match m;
-                    functionIdentifier = GetFunctionFromLine(line);
-
-                    if ((m = Regex.Match(line, @"\(\w+,(?<index>\d+)\)")).Success && functionIdentifier == idCharSwap)
-                    {
-                        operations += "w" + m.Groups["index"].Value + " "; //operation is a swap (w)
-                    }
-
-                    if ((m = Regex.Match(line, @"\(\w+,(?<index>\d+)\)")).Success && functionIdentifier == idSlice)
-                    {
-                        operations += "s" + m.Groups["index"].Value + " "; //operation is a slice
-                    }
-
-                    if (functionIdentifier == idReverse) //No regex required for reverse (reverse method has no parameters)
-                    {
-                        operations += "r "; //operation is a reverse
-                    }
-                }
-
-                operations = operations.Trim();
-
-                string magicResult = MagicHands.DecipherWithOperations(encryptedSignature, operations);
-
-                videoInfo.DownloadUrl = HTTPHelperYoutube.ReplaceQueryStringParameter(videoInfo.DownloadUrl, SignatureQuery, magicResult);
-                videoInfo.RequiresDecryption = false;
-                callback.Invoke(videoInfo.DownloadUrl);
-            }
-            else
-                yield return null;
+            masterURLForAudio = url;
         }
+
+        public void SetMasterUrlForVideo(string url)
+        {
+            masterURLForVideo = url;
+        }
+
+
+        public void DoRegexFunctionsForVideo()
+        {
+            string js = masterURLForVideo;
+            //Find "C" in this: var A = B.sig||C (B.s)
+            string functNamePattern = @"(\w+)\s*=\s*function\(\s*(\w+)\s*\)\s*{\s*\2\s*=\s*\2\.split\(\""\""\)\s*;(.+)return\s*\2\.join\(\""\""\)\s*}\s*;";
+
+            var funcName = Regex.Match(js, functNamePattern).Groups[1].Value;
+
+            if (funcName.Contains("$"))
+            {
+                funcName = "\\" + funcName; //Due To Dollar Sign Introduction, Need To Escape
+            }
+
+            string funcPattern = @"(?!h\.)" + @funcName + @"=function\(\w+\)\{.*?\}"; //Escape funcName string
+            var funcBody = Regex.Match(js, funcPattern, RegexOptions.Singleline).Value; //Entire sig function
+            var lines = funcBody.Split(';'); //Each line in sig function
+
+            string idReverse = "", idSlice = "", idCharSwap = ""; //Hold name for each cipher method
+            string functionIdentifier = "";
+            string operations = "";
+
+            foreach (var line in lines.Skip(1).Take(lines.Length - 2)) //Matches the funcBody with each cipher method. Only runs till all three are defined.
+            {
+                if (!string.IsNullOrEmpty(idReverse) && !string.IsNullOrEmpty(idSlice) &&
+                    !string.IsNullOrEmpty(idCharSwap))
+                {
+                    break; //Break loop if all three cipher methods are defined
+                }
+
+                functionIdentifier = GetFunctionFromLine(line);
+                string reReverse = string.Format(@"{0}:\bfunction\b\(\w+\)", functionIdentifier); //Regex for reverse (one parameter)
+                string reSlice = string.Format(@"{0}:\bfunction\b\([a],b\).(\breturn\b)?.?\w+\.", functionIdentifier); //Regex for slice (return or not)
+                string reSwap = string.Format(@"{0}:\bfunction\b\(\w+\,\w\).\bvar\b.\bc=a\b", functionIdentifier); //Regex for the char swap.
+
+                if (Regex.Match(js, reReverse).Success)
+                {
+                    idReverse = functionIdentifier; //If def matched the regex for reverse then the current function is a defined as the reverse
+                }
+
+                if (Regex.Match(js, reSlice).Success)
+                {
+                    idSlice = functionIdentifier; //If def matched the regex for slice then the current function is defined as the slice.
+                }
+
+                if (Regex.Match(js, reSwap).Success)
+                {
+                    idCharSwap = functionIdentifier; //If def matched the regex for charSwap then the current function is defined as swap.
+                }
+            }
+
+            foreach (var line in lines.Skip(1).Take(lines.Length - 2))
+            {
+                Match m;
+                functionIdentifier = GetFunctionFromLine(line);
+
+                if ((m = Regex.Match(line, @"\(\w+,(?<index>\d+)\)")).Success && functionIdentifier == idCharSwap)
+                {
+                    operations += "w" + m.Groups["index"].Value + " "; //operation is a swap (w)
+                }
+
+                if ((m = Regex.Match(line, @"\(\w+,(?<index>\d+)\)")).Success && functionIdentifier == idSlice)
+                {
+                    operations += "s" + m.Groups["index"].Value + " "; //operation is a slice
+                }
+
+                if (functionIdentifier == idReverse) //No regex required for reverse (reverse method has no parameters)
+                {
+                    operations += "r "; //operation is a reverse
+                }
+            }
+
+            operations = operations.Trim();
+
+            string magicResult = MagicHands.DecipherWithOperations(encryptedSignatureVideo, operations);
+            decryptedVideoUrlResult = HTTPHelperYoutube.ReplaceQueryStringParameter(EncryptUrlForVideo, SignatureQuery, magicResult);
+            decryptedUrlForVideo = true;
+        }
+
+        public void DoRegexFunctionsForAudio()
+        {
+            string js = masterURLForAudio;
+            //Find "C" in this: var A = B.sig||C (B.s)
+            string functNamePattern = @"(\w+)\s*=\s*function\(\s*(\w+)\s*\)\s*{\s*\2\s*=\s*\2\.split\(\""\""\)\s*;(.+)return\s*\2\.join\(\""\""\)\s*}\s*;";
+
+            var funcName = Regex.Match(js, functNamePattern).Groups[1].Value;
+
+            if (funcName.Contains("$"))
+            {
+                funcName = "\\" + funcName; //Due To Dollar Sign Introduction, Need To Escape
+            }
+
+            string funcPattern = @"(?!h\.)" + @funcName + @"=function\(\w+\)\{.*?\}"; //Escape funcName string
+            var funcBody = Regex.Match(js, funcPattern, RegexOptions.Singleline).Value; //Entire sig function
+            var lines = funcBody.Split(';'); //Each line in sig function
+
+            string idReverse = "", idSlice = "", idCharSwap = ""; //Hold name for each cipher method
+            string functionIdentifier = "";
+            string operations = "";
+
+            foreach (var line in lines.Skip(1).Take(lines.Length - 2)) //Matches the funcBody with each cipher method. Only runs till all three are defined.
+            {
+                if (!string.IsNullOrEmpty(idReverse) && !string.IsNullOrEmpty(idSlice) &&
+                    !string.IsNullOrEmpty(idCharSwap))
+                {
+                    break; //Break loop if all three cipher methods are defined
+                }
+
+                functionIdentifier = GetFunctionFromLine(line);
+                string reReverse = string.Format(@"{0}:\bfunction\b\(\w+\)", functionIdentifier); //Regex for reverse (one parameter)
+                string reSlice = string.Format(@"{0}:\bfunction\b\([a],b\).(\breturn\b)?.?\w+\.", functionIdentifier); //Regex for slice (return or not)
+                string reSwap = string.Format(@"{0}:\bfunction\b\(\w+\,\w\).\bvar\b.\bc=a\b", functionIdentifier); //Regex for the char swap.
+
+                if (Regex.Match(js, reReverse).Success)
+                {
+                    idReverse = functionIdentifier; //If def matched the regex for reverse then the current function is a defined as the reverse
+                }
+
+                if (Regex.Match(js, reSlice).Success)
+                {
+                    idSlice = functionIdentifier; //If def matched the regex for slice then the current function is defined as the slice.
+                }
+
+                if (Regex.Match(js, reSwap).Success)
+                {
+                    idCharSwap = functionIdentifier; //If def matched the regex for charSwap then the current function is defined as swap.
+                }
+            }
+
+            foreach (var line in lines.Skip(1).Take(lines.Length - 2))
+            {
+                Match m;
+                functionIdentifier = GetFunctionFromLine(line);
+
+                if ((m = Regex.Match(line, @"\(\w+,(?<index>\d+)\)")).Success && functionIdentifier == idCharSwap)
+                {
+                    operations += "w" + m.Groups["index"].Value + " "; //operation is a swap (w)
+                }
+
+                if ((m = Regex.Match(line, @"\(\w+,(?<index>\d+)\)")).Success && functionIdentifier == idSlice)
+                {
+                    operations += "s" + m.Groups["index"].Value + " "; //operation is a slice
+                }
+
+                if (functionIdentifier == idReverse) //No regex required for reverse (reverse method has no parameters)
+                {
+                    operations += "r "; //operation is a reverse
+                }
+            }
+
+            operations = operations.Trim();
+
+            string magicResult = MagicHands.DecipherWithOperations(encryptedSignatureAudio, operations);
+
+            decryptedAudioUrlResult = HTTPHelperYoutube.ReplaceQueryStringParameter(EncryptUrlForAudio, SignatureQuery, magicResult);
+            decryptedUrlForAudio = true;
+        }
+
+        [HideInInspector]
+        public bool decryptedUrlForVideo = false;
+        [HideInInspector]
+        public bool decryptedUrlForAudio = false;
+        [HideInInspector]
+        public string decryptedVideoUrlResult = "";
+        [HideInInspector]
+        public string decryptedAudioUrlResult = "";
+
 
         private static string GetFunctionFromLine(string currentLine)
         {
@@ -124,21 +220,21 @@ namespace YoutubeLight
         }
 
         public List<VideoInfo> videoInfos;
-        public IEnumerator GetDownloadUrls(Action callback, string videoUrl, bool decryptSignature = true)
+        public void GetDownloadUrls(Action callback, string videoUrl, YoutubePlayer player)
         {
-            if (videoUrl != null) { Debug.Log("Youtube: " + videoUrl); } else { Debug.Log("Youtube url null!"); }
+            if (videoUrl != null) { /*Debug.Log("Youtube: " + videoUrl);*/ } else { /*Debug.Log("Youtube url null!");*/ }
             if (videoUrl == null)
                 throw new ArgumentNullException("videoUrl");
 
-#if UNITY_WSA
-            videoUrl = "https://youtube.com/watch?v=" + videoUrl;
-#else
-            Uri uriResult;
-            bool result = Uri.TryCreate(videoUrl, UriKind.Absolute, out uriResult)
-                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-            if (!result)
-                videoUrl = "https://youtube.com/watch?v=" + videoUrl;
-#endif
+//#if UNITY_WSA
+//            videoUrl = "https://youtube.com/watch?v=" + videoUrl;
+//#else
+//            Uri uriResult;
+//            bool result = Uri.TryCreate(videoUrl, UriKind.Absolute, out uriResult)
+//                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+//            if (!result)
+//                videoUrl = "https://youtube.com/watch?v=" + videoUrl;
+//#endif
 
 
             bool isYoutubeUrl = TryNormalizeYoutubeUrl(videoUrl, out videoUrl);
@@ -146,15 +242,21 @@ namespace YoutubeLight
             {
                 throw new ArgumentException("URL is not a valid youtube URL!");
             }
-            yield return StartCoroutine(DownloadUrl(videoUrl));
-            if (downloadUrlResponse.isValid)
+            StartCoroutine(DownloadYoutubeUrl(videoUrl, callback, player));
+            
+        }
+
+        void YoutubeURLDownloadFinished(Action callback, YoutubePlayer player)
+        {
+            if (downloadYoutubeUrlResponse.isValid)
             {
-                if (IsVideoUnavailable(downloadUrlResponse.data)) { throw new VideoNotAvailableException(); }
+                if (IsVideoUnavailable(downloadYoutubeUrlResponse.data)) { throw new VideoNotAvailableException(); }
 
                 try
                 {
+                    
                     var dataRegex = new Regex(@"ytplayer\.config\s*=\s*(\{.+?\});", RegexOptions.Multiline);
-                    string extractedJson = dataRegex.Match(downloadUrlResponse.data).Result("$1");
+                    string extractedJson = dataRegex.Match(downloadYoutubeUrlResponse.data).Result("$1");
                     JObject json = JObject.Parse(extractedJson);
                     string videoTitle = GetVideoTitle(json);
                     IEnumerable<ExtractionInfo> downloadUrls = ExtractDownloadUrls(json);
@@ -162,12 +264,11 @@ namespace YoutubeLight
                     Html5PlayerResult htmlPlayerVersion = GetHtml5PlayerVersion(json);
                     if (htmlPlayerVersion.isValid)
                     {
-                        foreach (VideoInfo info in infos)
+                        videoInfos = infos;
+                        foreach(VideoInfo info in videoInfos)
                         {
                             info.HtmlPlayerVersion = htmlPlayerVersion.result;
-                            info.HtmlscriptName = htmlPlayerVersion.scriptName;
                         }
-                        videoInfos = infos;
                         callback.Invoke();
                     }
 
@@ -179,15 +280,14 @@ namespace YoutubeLight
                     //Debug.Log("DownloadUrl content saved to " + filePath);
                     //File.WriteAllText(filePath, downloadUrlResponse.data);
                     Debug.Log("retry!");
-                    if (GameObject.FindObjectOfType<HighQualityPlayback>() != null)
+                    if(player != null)
                     {
-                        GameObject.FindObjectOfType<HighQualityPlayback>().RetryPlayYoutubeVideo();
+                        player.RetryPlayYoutubeVideo();
                     }
-                    else if(GameObject.FindObjectOfType<SimplePlayback>() != null)
+                    else
                     {
-                        GameObject.FindObjectOfType<SimplePlayback>().RetryPlayback();
+                        Debug.LogError("Connection to Youtube Server Error! Try Again");
                     }
-                    
                 }
             }
         }
@@ -368,6 +468,11 @@ namespace YoutubeLight
             return pageSource.Contains(unavailableContainer);
         }
 
+        [HideInInspector]
+        public string EncryptUrlForVideo;
+        [HideInInspector]
+        public string EncryptUrlForAudio;
+
         private class DownloadUrlResponse
         {
             public string data = null;
@@ -375,29 +480,51 @@ namespace YoutubeLight
             public long httpCode = 0;
             public DownloadUrlResponse() { data = null; isValid = false; httpCode = 0; }
         }
-        private DownloadUrlResponse downloadUrlResponse;
+        private DownloadUrlResponse downloadYoutubeUrlResponse;
         bool downloadString = false;
-        IEnumerator DownloadUrl(string url)
+
+
+        IEnumerator DownloadUrl(string url, Action<string> callback, VideoInfo videoInfo)
         {
-            downloadUrlResponse = new DownloadUrlResponse();
             UnityWebRequest request = UnityWebRequest.Get(url);
             request.SetRequestHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0 (Chrome)");
             yield return request.Send();
-            downloadUrlResponse.httpCode = request.responseCode;
             if (request.isNetworkError) { Debug.Log("Youtube UnityWebRequest isNetworkError!"); }
             else if (request.isHttpError) { Debug.Log("Youtube UnityWebRequest isHttpError!"); }
             else if (request.responseCode == 200)
             {
-                Debug.Log("Youtube UnityWebRequest responseCode 200: OK!");
+                //FinishDecrypt(callback, videoInfo, request.downloadHandler.text);
+            }
+            else
+            { Debug.Log("Youtube UnityWebRequest responseCode:" + request.responseCode); }
+        }
+
+        IEnumerator DownloadYoutubeUrl(string url, Action callback, YoutubePlayer player)
+        {
+            downloadYoutubeUrlResponse = new DownloadUrlResponse();
+            UnityWebRequest request = UnityWebRequest.Get(url);
+            request.SetRequestHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0 (Chrome)");
+            yield return request.Send();
+            downloadYoutubeUrlResponse.httpCode = request.responseCode;
+            if (request.isNetworkError) { Debug.Log("Youtube UnityWebRequest isNetworkError!"); }
+            else if (request.isHttpError) { Debug.Log("Youtube UnityWebRequest isHttpError!"); }
+            else if (request.responseCode == 200)
+            {
+
+                //Debug.Log("Youtube UnityWebRequest responseCode 200: OK!");
                 if (request.downloadHandler != null && request.downloadHandler.text != null)
                 {
-                    downloadUrlResponse.isValid = true;
-                    downloadUrlResponse.data = request.downloadHandler.text;
+                    if (request.downloadHandler.isDone)
+                    {
+                        downloadYoutubeUrlResponse.isValid = true;
+                        downloadYoutubeUrlResponse.data = request.downloadHandler.text;
+                    }
                 }
                 else { Debug.Log("Youtube UnityWebRequest Null response"); }
             }
             else
             { Debug.Log("Youtube UnityWebRequest responseCode:" + request.responseCode); }
+            YoutubeURLDownloadFinished(callback, player);
         }
 
         private static void ThrowYoutubeParseException(Exception innerException, string videoUrl)

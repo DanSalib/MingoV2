@@ -12,8 +12,9 @@ public class YoutubeVideoListCreator : MonoBehaviour
     public delegate void LoadCategory(string categoryId);
     public static event LoadCategory OnLoad;
 
+    public ListController listController;
     private string apiKey = "AIzaSyCOu6VAoXIymLoI-5U5CWh3LFOAoVGXvIQ";
-    public int maxResults = 30;
+    public int maxResults = 32;
     public Dictionary<string, List<VideoListItem>> CategoryVideos = new Dictionary<string, List<VideoListItem>>
     {
         { "music" , new List<VideoListItem>() },
@@ -21,7 +22,7 @@ public class YoutubeVideoListCreator : MonoBehaviour
         { "news" , new List<VideoListItem>() },
         { "comedy" , new List<VideoListItem>() },
         { "automotive" , new List<VideoListItem>() },
-        { "cooking" , new List<VideoListItem>() },
+        { "kids" , new List<VideoListItem>() },
         { "nba" , new List<VideoListItem>() },
         { "soccer" , new List<VideoListItem>() },
         { "nhl" , new List<VideoListItem>() },
@@ -30,21 +31,65 @@ public class YoutubeVideoListCreator : MonoBehaviour
 
     public Dictionary<string, string> ChannelIds = new Dictionary<string, string>
     {
-        { "music" , "UC-9-kyTW8ZkZNDHQJ6FgpwQ"},
-        { "nature" ,  "UC4UWbQ23IbWwU-XG7XIWxvQ" },
-        { "news" , "UCuFFtHWoLl5fauMMD5Ww2jA" },
-        { "comedy" , "UCwWhs_6x42TyRM4Wstoq8HA" },
-        { "automotive" , "UCsAegdhiYLEoaFGuJFVrqFQ" },
-        { "cooking" , "UCJFp8uSYCjXOMnkUyb3CQ3Q" },
-        { "nba" , "UCWJ2lWNubArHWmf3FIHbfcQ" },
-        { "soccer" , "UCOehRhbXyxRGsNO0nkLgZfA" },
-        { "nhl" , "UCK3CHl-6e3hq4gQaz_TOyoQ" },
-        { "gaming" , "UCbu2SsF-Or3Rsn3NxqODImw"}
+        { "music" , "PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth"},
+        { "nature" ,  "PLdhB2hC90YEtAgR37NjCIqOcZI3QWGvR3" },
+        { "news" , "PLS3XGZxi7cBVNadbxDqZCUgISvabEpu-g" },
+        { "comedy" , "PLoXkGkpREHNBerh-2Ql6R5GqRk-Hz20O_" },
+        { "automotive" , "PLMQrDNsc92hcP_j58H8XcO38UZVQld8Hz" },
+        { "kids" , "UCGydrkfIhUDNCotYQI8TJhA" },
+        { "nba" , "PL5j8RirTTnK5rfAPFJFwaqJvLweQynhjq" },
+        { "soccer" , "PLXEMPXZ3PY1gVa1-2_7eHIX2mU8SJiww0" },
+        { "nhl" , "PLo12SYwt93SQ4e-J9mANGoKTjQYbD3i04" },
+        { "gaming" , "PLraFbwCoisJBTl0oXn8UoUam5HXWUZ7ES"}
+    };
+
+    public Dictionary<string, Dictionary<string, Texture>> CategoryIdToThumbnails = new Dictionary<string, Dictionary<string, Texture>>
+    {
+        { "music" , new Dictionary<string, Texture>() },
+        { "nature", new Dictionary<string, Texture>() },
+        { "automotive", new Dictionary<string, Texture>() },
+        { "comedy", new Dictionary<string, Texture>() },
+        { "news", new Dictionary<string, Texture>() },
+        { "nba", new Dictionary<string, Texture>() },
+        { "soccer", new Dictionary<string, Texture>()},
+        { "nhl", new Dictionary<string, Texture>() },
+        { "gaming", new Dictionary<string, Texture>() },
+        { "kids", new Dictionary<string, Texture>() }
     };
 
     void Start()
     {
         StartCoroutine(GetText());
+    }
+
+    public void RefreshList()
+    {
+        foreach (var key in CategoryVideos.Keys)
+        {
+            foreach (VideoListItem vid in CategoryVideos[key])
+            {
+                StartCoroutine(GetImage(vid, key));
+            }
+        }
+    }
+
+
+    IEnumerator GetImage(VideoListItem listItem, string categoryId)
+    {
+        if (listItem?.ThumbnailUrl != null)
+        {
+            UnityWebRequest www = UnityWebRequestTexture.GetTexture(listItem?.ThumbnailUrl);
+            yield return www.Send();
+
+            if (www.isNetworkError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                CategoryIdToThumbnails[categoryId].Add(listItem.Id, ((DownloadHandlerTexture)www.downloadHandler)?.texture);
+            }
+        }
     }
 
     IEnumerator GetText()
@@ -54,13 +99,13 @@ public class YoutubeVideoListCreator : MonoBehaviour
         {
             Debug.Log(key);
             UnityWebRequest www = null;
-            if (key == "music")
+            if (ChannelIds[key][0] == 'P')
             {
-                www = UnityWebRequest.Get("https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=PL55713C70BA91BD6E&maxResults=20&key=AIzaSyCOu6VAoXIymLoI-5U5CWh3LFOAoVGXvIQ");
+                www = UnityWebRequest.Get("https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=" + ChannelIds[key]+ "&maxResults=" + maxResults + "&videoDefinition=standard&key=AIzaSyCOu6VAoXIymLoI-5U5CWh3LFOAoVGXvIQ");
             }
             else
             {
-                www = UnityWebRequest.Get("https://www.googleapis.com/youtube/v3/search?q=" + key + "&type=video&maxResults=" + maxResults + "&part=snippet&channelId=" + ChannelIds[key] + "&key=AIzaSyCOu6VAoXIymLoI-5U5CWh3LFOAoVGXvIQ");
+                www = UnityWebRequest.Get("https://www.googleapis.com/youtube/v3/search?type=video&maxResults=" + maxResults + "&part=snippet&channelId=" + ChannelIds[key] + "&videoDefinition=standard&key=AIzaSyCOu6VAoXIymLoI-5U5CWh3LFOAoVGXvIQ");
             }
             yield return www.SendWebRequest();
 
@@ -75,7 +120,7 @@ public class YoutubeVideoListCreator : MonoBehaviour
                 JSONObject json = new JSONObject(jsonData);
                 // Or retrieve results as binary data
                 //Debug.Log(www.downloadHandler.text);
-                if(key != "music")
+                if (ChannelIds[key][0] != 'P')
                 {
                     YoutubeResponseData responseData = JsonUtility.FromJson<YoutubeResponseData>(www.downloadHandler.text);
                     foreach (var videoItem in responseData.items)
@@ -99,7 +144,7 @@ public class YoutubeVideoListCreator : MonoBehaviour
                     YoutubePlaylistResponseData responseData = JsonUtility.FromJson<YoutubePlaylistResponseData>(www.downloadHandler.text);
                     foreach (var videoItem in responseData.items)
                     {
-                        if (videoItem.snippet.resourceId.kind != "youtube#video")
+                        if (videoItem.snippet.resourceId.kind != "youtube#video" || videoItem.snippet.title == "Private video")
                         {
                             continue;
                         }
@@ -107,7 +152,7 @@ public class YoutubeVideoListCreator : MonoBehaviour
                         {
                             Title = videoItem.snippet.title,
                             Id = videoItem.snippet.resourceId.videoId,
-                            ThumbnailUrl = videoItem.snippet.thumbnails.medium.url
+                            ThumbnailUrl = videoItem.snippet.thumbnails?.medium?.url ?? videoItem.snippet.thumbnails?.standard?.url
                         };
                         Debug.Log(video.Title + " " + video.Id + " " + video.ThumbnailUrl);
                         CategoryVideos[key].Add(video);
@@ -115,5 +160,6 @@ public class YoutubeVideoListCreator : MonoBehaviour
                 }
             }
         }
+        RefreshList();
     }
 }

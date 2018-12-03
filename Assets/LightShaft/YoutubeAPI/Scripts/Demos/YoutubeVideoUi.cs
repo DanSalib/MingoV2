@@ -13,16 +13,12 @@ public class YoutubeVideoUi : MonoBehaviour {
     public void PlayYoutubeVideo()
     {
         //search for the low quality if not find search for highquality
-        if(GameObject.FindObjectOfType<SimplePlayback>() != null)
+        if(GameObject.FindObjectOfType<YoutubePlayer>() != null)
         {
-            GameObject.FindObjectOfType<SimplePlayback>().PlayYoutubeVideo(videoId);
-            GameObject.FindObjectOfType<SimplePlayback>().unityVideoPlayer.loopPointReached += VideoFinished;
+            GameObject.FindObjectOfType<YoutubePlayer>().LoadYoutubeVideo(videoId);
+            GameObject.FindObjectOfType<YoutubePlayer>().videoPlayer.loopPointReached += VideoFinished;
         }
-        else if(GameObject.FindObjectOfType<HighQualityPlayback>() != null)
-        {
-            GameObject.FindObjectOfType<HighQualityPlayback>().PlayYoutubeVideo(videoId);
-            GameObject.FindObjectOfType<HighQualityPlayback>().unityVideoPlayer.loopPointReached += VideoFinished;
-        }
+
         if (GameObject.FindObjectOfType<VideoSearchDemo>() != null)
             mainUI = GameObject.FindObjectOfType<VideoSearchDemo>().mainUI;
         else if (GameObject.FindObjectOfType<ChannelSearchDemo>() != null)
@@ -34,13 +30,9 @@ public class YoutubeVideoUi : MonoBehaviour {
 
     private void VideoFinished(VideoPlayer vPlayer)
     {
-        if (GameObject.FindObjectOfType<SimplePlayback>() != null)
+        if (GameObject.FindObjectOfType<YoutubePlayer>() != null)
         {
-            GameObject.FindObjectOfType<SimplePlayback>().unityVideoPlayer.loopPointReached -= VideoFinished;
-        }
-        else if (GameObject.FindObjectOfType<HighQualityPlayback>() != null)
-        {
-            GameObject.FindObjectOfType<HighQualityPlayback>().unityVideoPlayer.loopPointReached -= VideoFinished;
+            GameObject.FindObjectOfType<YoutubePlayer>().videoPlayer.loopPointReached -= VideoFinished;
         }
         
         Debug.Log("Video Finished");

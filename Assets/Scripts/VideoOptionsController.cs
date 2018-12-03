@@ -25,8 +25,11 @@ public class VideoOptionsController : MonoBehaviour {
     private float prevSliderX;
     private float prevVol;
 
-	// Use this for initialization
-	void Start () {
+    public delegate void Play();
+    public static event Play OnPlay;
+
+    // Use this for initialization
+    void Start () {
         SessionController.OnSessionReset += ResetVideoOptions;
     }
 
@@ -127,9 +130,9 @@ public class VideoOptionsController : MonoBehaviour {
         var sign = volUp ? 1 : -1;
         var mag = (!volUp && originalLocation.x <= -357)
             || (volUp && originalLocation.x >= -263) 
-            ? 0f : 22f;
+            ? 0f : 18;
 
-        audioSource.volume += sign * mag * (0.19f / 22f);
+        audioSource.volume += sign * mag * (0.14f / 18f);
 
         Vector3 destination = new Vector3((sign * mag) + originalLocation.x, originalLocation.y, originalLocation.z);
 
@@ -171,7 +174,7 @@ public class VideoOptionsController : MonoBehaviour {
             muteImage.gameObject.SetActive(false);
             unmuteImage.gameObject.SetActive(true);
             muteButton.image = unmuteImage;
-            volSlider.transform.localPosition = new Vector3(-359, originalLocation.y, originalLocation.z);
+            volSlider.transform.localPosition = new Vector3(-370, originalLocation.y, originalLocation.z);
             audioSource.volume = 0.01f;
         }
         else
@@ -195,12 +198,21 @@ public class VideoOptionsController : MonoBehaviour {
         }
         else
         {
+            OnPlay();
             playImage.gameObject.SetActive(false);
             pauseImage.gameObject.SetActive(true);
             playButton.image = pauseImage;
         }
         paused = !paused;
         mediaController.PlayPauseVideo();
+    }
+
+    public void SetPlay()
+    {
+        playImage.gameObject.SetActive(false);
+        pauseImage.gameObject.SetActive(true);
+        playButton.image = pauseImage;
+        paused = false;
     }
 
     // Update is called once per frame

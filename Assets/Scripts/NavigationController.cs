@@ -18,7 +18,10 @@ public class NavigationController : MonoBehaviour {
     public GameObject indicator;
     public NavObject curPanel;
     public NavObject prevPanel;
+    public GameObject downNotice;
     private directions prevDirection;
+
+    public bool reconnecting = false;
 
     private Stopwatch joystickTimer = new Stopwatch();
     private NavObject startPanel;
@@ -117,6 +120,7 @@ public class NavigationController : MonoBehaviour {
             {
                 HideOptions();
                 vidOptionsIndicator.SetActive(false);
+                downNotice.SetActive(false);
                 indicator.SetActive(true);
                 curPanel = prevPanel;
                 prevPanel = null;
@@ -124,7 +128,7 @@ public class NavigationController : MonoBehaviour {
             else
             {
                 curPanel = curPanel.downNeighbor ?? curPanel;
-                if (viewPort.activeInHierarchy && indicator.transform.localPosition.y < -200 && viewPort.transform.localPosition.y < 280)
+                if (viewPort.activeInHierarchy && indicator.transform.localPosition.y < -200 && viewPort.transform.localPosition.y < 720)
                 {
                     var curPos = viewPort.transform.localPosition;
                     viewPort.transform.localPosition = new Vector3(curPos.x, curPos.y + 131, curPos.z);
@@ -172,6 +176,7 @@ public class NavigationController : MonoBehaviour {
             indicator.transform.position = curPanel.thisObject.transform.position;
         } else if (curPanel != null && curPanel.isVideo)
         {
+            downNotice.SetActive(true);
             vidOptionsIndicator.SetActive(true);
             vidOptionsIndicator.transform.position = curPanel.thisObject.transform.position;
         }

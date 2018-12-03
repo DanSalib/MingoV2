@@ -14,20 +14,6 @@ public class ListController : MonoBehaviour {
 
     public VideoListItem[] VideoList;
 
-    private Dictionary<string, Dictionary<string, Texture>> CategoryIdToThumbnails = new Dictionary<string, Dictionary<string, Texture>>
-    {
-        { "music" , new Dictionary<string, Texture>() },
-        { "nature", new Dictionary<string, Texture>() },
-        { "automotive", new Dictionary<string, Texture>() },
-        { "comedy", new Dictionary<string, Texture>() },
-        { "news", new Dictionary<string, Texture>() },
-        { "nba", new Dictionary<string, Texture>() },
-        { "soccer", new Dictionary<string, Texture>()},
-        { "nhl", new Dictionary<string, Texture>() },
-        { "gaming", new Dictionary<string, Texture>() },
-        { "cooking", new Dictionary<string, Texture>() }
-    };
-
     // Use this for initialization
     void Start () {
         PanelController.OnClicked += RefreshList;
@@ -44,35 +30,18 @@ public class ListController : MonoBehaviour {
         int i = 0;
         foreach (VideoListItem vid in VideoListCreator.CategoryVideos[panel.categoryId])
         {
-            VideoList[i].Title = vid.Title;
-            VideoList[i].Id = vid.Id;
-            VideoList[i].ThumbnailUrl = vid.ThumbnailUrl;
-            VideoList[i].VideoTitle.text = vid.Title;
-            if(CategoryIdToThumbnails[panel.categoryId].ContainsKey(vid.Id))
+            if (i < VideoList.Length)
             {
-                VideoList[i].Thumbnail.texture = CategoryIdToThumbnails[panel.categoryId][vid.Id];
+                VideoList[i].Title = vid.Title;
+                VideoList[i].Id = vid.Id;
+                VideoList[i].ThumbnailUrl = vid.ThumbnailUrl;
+                VideoList[i].VideoTitle.text = vid.Title;
+                if (VideoListCreator.CategoryIdToThumbnails[panel.categoryId].ContainsKey(vid.Id))
+                {
+                    VideoList[i].Thumbnail.texture = VideoListCreator.CategoryIdToThumbnails[panel.categoryId][vid.Id];
+                }
+                i++;
             }
-            else
-            {
-                StartCoroutine(GetImage(VideoList[i], panel.categoryId));
-            }
-            i++;
-        }
-    }
-
-    IEnumerator GetImage(VideoListItem listItem, string categoryId)
-    {
-        UnityWebRequest www = UnityWebRequestTexture.GetTexture(listItem.ThumbnailUrl);
-        yield return www.Send();
-
-        if (www.isNetworkError)
-        {
-            Debug.Log(www.error);
-        }
-        else
-        {
-            listItem.Thumbnail.texture = ((DownloadHandlerTexture)www.downloadHandler).texture;
-            CategoryIdToThumbnails[categoryId].Add(listItem.Id, listItem.Thumbnail.texture);
         }
     }
 

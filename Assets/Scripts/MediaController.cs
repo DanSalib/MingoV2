@@ -8,7 +8,7 @@ using UnityEngine.Audio;
 
 public class MediaController : MonoBehaviour {
 
-    public SimplePlayback SimplePlayback;
+    public YoutubePlayer Player;
     public GameObject loadingImage;
     public GameObject loadingIndicator;
     public AudioSource videoPlayer;
@@ -17,6 +17,10 @@ public class MediaController : MonoBehaviour {
     public ListController listController;
     private string startingVidId;
     public bool disableVideoOptions = true;
+    public bool videoReady = false;
+    public bool firstTime = true;
+
+    private string youtubeUrl = "https://www.youtube.com/watch?v=";
 
     private int qSamples = 1024;  // array size
     private float refValue = 0.1f; // RMS value for 0 dB
@@ -24,51 +28,53 @@ public class MediaController : MonoBehaviour {
     private float dbValue = 0;    // sound level - dB
     private float volume = 2; // set how much the scale will vary
     private float[] samples; // audio samples'
-
-    public bool videoReady = false;
     public bool isActuallyPlaying = false;
 
     // Use this for initialization
     void Start () {
         VideoItemController.OnClicked += OnVideoClick;
         samples = new float[qSamples];
-        SimplePlayback.OnReady += VideoPrepared;
-        startingVidId = SimplePlayback.videoId;
+        startingVidId = "cUrboDG8zYg";
         SessionController.OnSessionReset += ResetSimplePlayback;
     }
 
     public void ResetSimplePlayback()
     {
-        SimplePlayback.videoId = startingVidId;
+        Player.Pause();
     }
 
     private void OnEnable()
     {
+        if(!firstTime)
+        {
+            Player.Pause();
+            Player.LoadYoutubeVideo(youtubeUrl + startingVidId);
+        }
+        else
+        {
+            firstTime = false;
+        }
+        
         disableVideoOptions = true;
-        SimplePlayback.videoId = "PMVAi1j9TQ0";
-        SimplePlayback.PlayYoutubeVideo("PMVAi1j9TQ0");
+ 
         if (curCoroutine != null)
         {
             StopCoroutine(curCoroutine);
         }
+        
         curCoroutine = StartCoroutine(VideoLoading());
-    }
-
-    private void VideoPrepared()
-    {
-        videoReady = true;
     }
 
     private void Update()
     {
-        if(videoReady && loadingImage.activeInHierarchy)
-        {
-            GetVolume();
-            if (dbValue > -160)
-            {
-                VideoReady();
-            }
-        }
+      //  if(videoReady && loadingImage.activeInHierarchy)
+       // {
+           // GetVolume();
+       //     if (dbValue > -160)
+       ///     {
+       //         VideoReady();
+         //   }
+       // }
     }
 
     private void GetVolume()
@@ -92,19 +98,29 @@ public class MediaController : MonoBehaviour {
         uiController.TeaseVideoOptions();
         isActuallyPlaying = true;
         disableVideoOptions = false;
-        videoReady = false;
+        //videoReady = false;
+    }
+
+    public void SetVideoReady()
+    {
+        SessionData.VidCount++;
+        StopCoroutine(curCoroutine);
+        loadingImage.SetActive(false);
+        uiController.TeaseVideoOptions();
+        isActuallyPlaying = true;
+        disableVideoOptions = false;
+        // videoReady = true;
     }
 
     public void OnVideoClick(VideoListItem video)
     {
-        Firebase.Analytics.FirebaseAnalytics.LogEvent("navigation", listController.curCategoryPanel.categoryId, "vidCount=" + SessionData.VidCount + " sessionId=" + SessionData.SessionId);
+        Firebase.Analytics.FirebaseAnalytics.LogEvent("navigation", listController.curCategoryPanel.categoryId, SessionData.VidCount);
         if (video != null && video.Id != string.Empty)
         {
             isActuallyPlaying = false;
             disableVideoOptions = true;
-            SimplePlayback.Play_Pause();
-            SimplePlayback.videoId = video.Id;
-            SimplePlayback.PlayYoutubeVideo(video.Id);
+            Player.Pause();
+            Player.LoadYoutubeVideo(youtubeUrl + video.Id);
             if (curCoroutine != null)
             {
                 StopCoroutine(curCoroutine);
@@ -115,7 +131,7 @@ public class MediaController : MonoBehaviour {
 
     public void PlayPauseVideo()
     {
-        SimplePlayback.Play_Pause();
+        Player.PlayPause();
     }
 
     private IEnumerator VideoLoading()

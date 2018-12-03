@@ -15,16 +15,16 @@ MonoBehaviour:
     vuforiaLicenseKey: 
     ufoLicenseKey: QVpTdlNiMy8vLy8vQUFBQUtPLytsbVFDV0U3YWxhM0hYTmViZ3pReWs5UmJWdWIvbHMxUk91UUNjTFowL3RsQmVMMHo3WW90RHZFTTd6Z25ELzI2eldqMnNXeEdpd09uRFZmS0Y1aTFSVFYvVHRIZFAzZkhjcmhBdFZOZHczb0FLQ3YwOU9ndHlVWlhEUkVWVHVOL2gzbW8xcXJLak5GdUtsakd3RklwT2w2Qml4LzJhWmhzNnZ4T28yenFiZlI1bFJpVTB6SkNFTW9qM1R3QktaSVNaL08vSml5VFVEMDZQa0RxUnFhYlVuY3k3NFhPTCtHOENEbk5Ra2kyREVBUjlwT0daMjdoMTRUUmhWTHI4ZitFKysycnNSeHV1SU4rdU1rNy9hOWNVTVlzYXlUZW9OVE9qaVNxZG9vazhCVHhObi9mS3pLUFZhbjJsdGV0ZnB1OFJ3Tll4OFBRcXB4dlVMOFVmOTM1MUtDTnVYZm81YnBYWmptTjkxaGE=
     delayedInitialization: 0
-    cameraDeviceModeSetting: -1
-    maxSimultaneousImageTargets: 1
-    maxSimultaneousObjectTargets: 1
+    cameraDeviceModeSetting: -2
+    maxSimultaneousImageTargets: 0
+    maxSimultaneousObjectTargets: 0
     useDelayedLoadingObjectTargets: 0
     cameraDirection: 0
     mirrorVideoBackground: 0
   digitalEyewear:
     cameraOffset: 0.06
     distortionRenderingLayer: 31
-    eyewearType: 0
+    eyewearType: 2
     stereoFramework: 0
     seeThroughConfiguration: 0
     viewerName: Cardboard v1

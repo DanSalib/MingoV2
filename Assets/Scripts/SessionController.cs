@@ -7,6 +7,7 @@ using Vuforia;
 using Firebase;
 using Firebase.Database;
 using Firebase.Unity.Editor;
+using System;
 
 public class SessionController : MonoBehaviour {
 
@@ -54,7 +55,6 @@ public class SessionController : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        UnityEngine.Debug.Log(SessionTimer.ElapsedMilliseconds);
 		if(SessionTimer.IsRunning && SessionTimer.ElapsedMilliseconds > SESSION_TIMOUT)
         {
             SessionTimer.Reset();
@@ -91,13 +91,13 @@ public class SessionController : MonoBehaviour {
 
         if(waitingForNextSession && ControllerTimer.ElapsedMilliseconds > CONTROLLER_CHECK_DELAY)
         {
-            if ((Input.GetJoystickNames().Length == 0 || !Input.GetJoystickNames()[0].Contains("Fortune Tech")) && !Input.GetKeyDown(KeyCode.O))
+            if (!ReconnectDialog.activeInHierarchy && (Input.GetJoystickNames().Length == 0 || !Input.GetJoystickNames()[0].Contains("Fortune Tech")) && !Input.GetKeyDown(KeyCode.O))
             {
                 Firebase.Analytics.FirebaseAnalytics.LogEvent("controllerStatus", "connected", 0);
                 SessionData.ControllerStatus.Add(0);
                 ReconnectDialog.SetActive(true);
             }
-            else
+            else if (ReconnectDialog.activeInHierarchy && (Input.GetJoystickNames().Length > 0 && Input.GetJoystickNames()[0].Contains("Fortune Tech")) || Input.GetKeyDown(KeyCode.O))
             {
                 if(ReconnectDialog.activeInHierarchy)
                 {
@@ -174,6 +174,7 @@ public class SessionController : MonoBehaviour {
         }
     }
 
+    [Serializable]
     private struct SessionDataJson
     {
         public long SessionId;
@@ -190,6 +191,8 @@ public class SessionController : MonoBehaviour {
 
         public List<int> ControllerStatus;
 
+        public List<CategoryLog> CategoryLog;
+
     }
 
     public void  ResetSession()
@@ -205,8 +208,13 @@ public class SessionController : MonoBehaviour {
         data.SessionStart = SessionData.SessionStart.ToString();
         data.SessionEnd = SessionData.SessionEnd.ToString();
         data.ControllerStatus = SessionData.ControllerStatus;
+        data.CategoryLog = SessionData.CategoryLogs;
 
-        var json = JsonUtility.ToJson(data);
+
+
+
+
+        var json =  JsonUtility.ToJson(data);
         UnityEngine.Debug.Log(json);
         var reference = FirebaseDatabase.DefaultInstance.RootReference;
         var stats = reference.Child("SessionStats").Push().SetRawJsonValueAsync(json);
@@ -214,6 +222,8 @@ public class SessionController : MonoBehaviour {
         SessionData.ControllerStatus.Clear();
 
         SessionData.VidCount = 0;
+        SessionData.CategoryLogs.Clear();
+
 
         waitingForNextSession = true;
         vuforiaBehaviour.enabled = false;

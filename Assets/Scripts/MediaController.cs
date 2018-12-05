@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using UnityEngine.Audio;
+using Firebase;
+using Firebase.Database;
+using Firebase.Unity.Editor;
 
 
 public class MediaController : MonoBehaviour {
@@ -41,6 +44,21 @@ public class MediaController : MonoBehaviour {
     public void ResetSimplePlayback()
     {
         Player.Pause();
+    }
+
+    public void ReplayVid()
+    {
+        Player.Pause();
+        Player.LoadYoutubeVideo(youtubeUrl + startingVidId);
+
+        disableVideoOptions = true;
+
+        if (curCoroutine != null)
+        {
+            StopCoroutine(curCoroutine);
+        }
+
+        curCoroutine = StartCoroutine(VideoLoading());
     }
 
     private void OnEnable()
@@ -114,9 +132,12 @@ public class MediaController : MonoBehaviour {
 
     public void OnVideoClick(VideoListItem video)
     {
-        Firebase.Analytics.FirebaseAnalytics.LogEvent("navigation", listController.curCategoryPanel.categoryId, SessionData.VidCount);
+ 
+
         if (video != null && video.Id != string.Empty)
         {
+            Firebase.Analytics.FirebaseAnalytics.LogEvent("navigation", listController.curCategoryPanel.categoryId, SessionData.VidCount);
+            SessionData.CategoryLogs.Add(new CategoryLog { Category = listController.curCategoryPanel.categoryId, LogTime = System.DateTime.UtcNow.ToLongTimeString() });
             isActuallyPlaying = false;
             disableVideoOptions = true;
             Player.Pause();

@@ -13,8 +13,6 @@ using UnityEngine.Networking;
 
 public class YoutubePlayer : RequestResolver
 {
-    public delegate void VideoFinished();
-    public static event VideoFinished OnFinish;
     #region ENUMS
     public enum YoutubeVideoQuality
     {
@@ -958,7 +956,6 @@ public class YoutubePlayer : RequestResolver
                 audioPlayer.Play();
             }
             OnVideoFinished.Invoke();
-            OnFinish();
         }
     }
 

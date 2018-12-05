@@ -38,7 +38,7 @@ public class YoutubeVideoListCreator : MonoBehaviour
         { "automotive" , "PLMQrDNsc92hcP_j58H8XcO38UZVQld8Hz" },
         { "kids" , "UCGydrkfIhUDNCotYQI8TJhA" },
         { "nba" , "PL5j8RirTTnK5rfAPFJFwaqJvLweQynhjq" },
-        { "soccer" , "PLXEMPXZ3PY1gVa1-2_7eHIX2mU8SJiww0" },
+        { "soccer" , "PLVWqRc88TLrCvtzi-2HT1CJMtChnfIvUk" },
         { "nhl" , "PLo12SYwt93SQ4e-J9mANGoKTjQYbD3i04" },
         { "gaming" , "PLraFbwCoisJBTl0oXn8UoUam5HXWUZ7ES"}
     };

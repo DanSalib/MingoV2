@@ -82,7 +82,7 @@ public class FtueController : MonoBehaviour {
         }
         else if (stepCount == 3)
         {
-            countDownText.text = (3 - Mathf.Floor(sessionCountDown.ElapsedMilliseconds / 1000f)).ToString() + "..";
+            countDownText.text = (3 - Mathf.Floor(sessionCountDown.ElapsedMilliseconds / 1000f)).ToString();
             if (sessionCountDown.ElapsedMilliseconds > 3000)
             {
                 countDownText.text = "0";

@@ -42,7 +42,7 @@ public class YoutubeVideoListCreator : MonoBehaviour
         { "nhl" , "PLo12SYwt93SQ4e-J9mANGoKTjQYbD3i04" },
         { "gaming" , "PLraFbwCoisJBTl0oXn8UoUam5HXWUZ7ES"}
     };
-
+    
     public Dictionary<string, Dictionary<string, Texture>> CategoryIdToThumbnails = new Dictionary<string, Dictionary<string, Texture>>
     {
         { "music" , new Dictionary<string, Texture>() },
@@ -76,20 +76,21 @@ public class YoutubeVideoListCreator : MonoBehaviour
 
     IEnumerator GetImage(VideoListItem listItem, string categoryId)
     {
-        if (listItem?.ThumbnailUrl != null)
-        {
-            UnityWebRequest www = UnityWebRequestTexture.GetTexture(listItem?.ThumbnailUrl);
-            yield return www.Send();
+         if (listItem?.ThumbnailUrl != null)
+         {
+             UnityWebRequest www = UnityWebRequestTexture.GetTexture(listItem?.ThumbnailUrl);
+             yield return www.Send();
 
-            if (www.isNetworkError)
-            {
-                Debug.Log(www.error);
-            }
-            else
-            {
-                CategoryIdToThumbnails[categoryId].Add(listItem.Id, ((DownloadHandlerTexture)www.downloadHandler)?.texture);
-            }
-        }
+             if (www.isNetworkError)
+             {
+                 Debug.Log(www.error);
+             }
+             else
+             {
+                 CategoryIdToThumbnails[categoryId].Add(listItem.Id, ((DownloadHandlerTexture)www.downloadHandler)?.texture);
+             }
+         }
+        yield return null;
     }
 
     IEnumerator GetText()

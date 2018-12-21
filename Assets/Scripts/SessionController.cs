@@ -19,7 +19,7 @@ public class SessionController : MonoBehaviour {
     public NavigationController navController;
 
     public VuforiaBehaviour vuforiaBehaviour;
-    private const float SESSION_TIMOUT = 60000;
+    public float sessionTimeout;
     private const float TURN_OFF_CAMERA_DELAY = 60000;
     private const float LOG_DELAY = 60000;
     private const float CONTROLLER_CHECK_DELAY = 15000;
@@ -55,7 +55,7 @@ public class SessionController : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-		if(SessionTimer.IsRunning && SessionTimer.ElapsedMilliseconds > SESSION_TIMOUT)
+		if(SessionTimer.IsRunning && SessionTimer.ElapsedMilliseconds > sessionTimeout)
         {
             SessionTimer.Reset();
             ResetSession();

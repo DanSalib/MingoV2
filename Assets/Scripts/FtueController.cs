@@ -20,17 +20,17 @@ public class FtueController : MonoBehaviour {
     private Vector3 originalFtueLocation;
     private Vector3 originalMainUILocation;
     private Vector3 originalFirstStepLocation;
-    private Vector3 originalSecondStepLocation;
+  //  private Vector3 originalSecondStepLocation;
     private Vector3 originalThirdStepLocation;
     private Vector3 originalFourthStepLocation;
 
 
     public Image LastStepImage;
     public GameObject firstStep;
-    public GameObject secondStep;
+   // public GameObject secondStep;
     public GameObject thirdStep;
     public GameObject fourthStep;
-    public GameObject secondStepCheck;
+   // public GameObject secondStepCheck;
     public GameObject thirdStepCheck;
     public Text countDownText;
     private int stepCount = 0;
@@ -64,23 +64,23 @@ public class FtueController : MonoBehaviour {
                 Firebase.Analytics.FirebaseAnalytics.LogEvent("walkthrough", "firstStepComplete", 0);
             }
         }
-        else if (stepCount == 1)
+        /*else if (stepCount == 1)
         {
             if (curCoroutine == null && Input.GetAxisRaw("Horizontal") == -1)
             {
                 curCoroutine = StartCoroutine(TransitionToThirdStep());
                 Firebase.Analytics.FirebaseAnalytics.LogEvent("walkthrough", "secondStepComplete", ftueTimer.ElapsedMilliseconds);
             }
-        }
-        else if (stepCount == 2)
+        }*/
+        else if (stepCount == 1)
         {
             if (curCoroutine == null && Input.GetAxisRaw("Horizontal") == 1)
             {
                 curCoroutine = StartCoroutine(TransitionToFourthStep());
-                Firebase.Analytics.FirebaseAnalytics.LogEvent("walkthrough", "thirdStepComplete", ftueTimer.ElapsedMilliseconds);
+                Firebase.Analytics.FirebaseAnalytics.LogEvent("walkthrough", "secondStepComplete", ftueTimer.ElapsedMilliseconds);
             }
         }
-        else if (stepCount == 3)
+        else if (stepCount == 2)
         {
             countDownText.text = (3 - Mathf.Floor(sessionCountDown.ElapsedMilliseconds / 1000f)).ToString();
             if (sessionCountDown.ElapsedMilliseconds > 3000)
@@ -88,7 +88,7 @@ public class FtueController : MonoBehaviour {
                 countDownText.text = "0";
                 curCoroutine = null;
                 StartCoroutine(FadeOutFtue());
-                Firebase.Analytics.FirebaseAnalytics.LogEvent("walkthrough", "fourthStepComplete", ftueTimer.ElapsedMilliseconds);
+                Firebase.Analytics.FirebaseAnalytics.LogEvent("walkthrough", "thirdStepComplete", ftueTimer.ElapsedMilliseconds);
                 OnStartClick();
                 ftueTimer.Reset();
             }
@@ -155,17 +155,17 @@ public class FtueController : MonoBehaviour {
         int rate = 2;
         float t = 0;
         originalFtueLocation = this.FtueGameObject.transform.localPosition;
-        originalSecondStepLocation = this.secondStep.transform.localPosition;
+        originalThirdStepLocation = this.thirdStep.transform.localPosition;
         originalFirstStepLocation = this.firstStep.transform.localPosition;
-        Vector3 secondStepDestination = new Vector3(originalFirstStepLocation.x, originalFirstStepLocation.y, originalFirstStepLocation.z);
-        Vector3 firstStepDestination = new Vector3(originalFirstStepLocation.x, originalSecondStepLocation.y, -1000);
+        Vector3 thirdStepDestination = new Vector3(originalFirstStepLocation.x, originalFirstStepLocation.y, originalFirstStepLocation.z);
+        Vector3 firstStepDestination = new Vector3(originalFirstStepLocation.x, originalThirdStepLocation.y, -1000);
 
-        secondStep.SetActive(true);
+        thirdStep.SetActive(true);
         while (t < 1)
         {
             t += Time.deltaTime * rate;
 
-            this.secondStep.transform.localPosition = Vector3.Lerp(originalSecondStepLocation, secondStepDestination, t);
+            this.thirdStep.transform.localPosition = Vector3.Lerp(originalThirdStepLocation, thirdStepDestination, t);
             this.firstStep.transform.localPosition = Vector3.Lerp(originalFirstStepLocation, firstStepDestination, t);
 
             var firstStepImage = firstStep.GetComponentInChildren<Image>();
@@ -180,7 +180,7 @@ public class FtueController : MonoBehaviour {
         ftueTimer.Start();
     }
 
-    private IEnumerator TransitionToThirdStep()
+   /* private IEnumerator TransitionToThirdStep()
     {
         int rate = 2;
         float t = 0;
@@ -222,7 +222,7 @@ public class FtueController : MonoBehaviour {
         secondStep.SetActive(false);
         curCoroutine = null;
 
-    }
+    }*/
 
     private IEnumerator TransitionToFourthStep()
     {
@@ -272,7 +272,7 @@ public class FtueController : MonoBehaviour {
         FtueGameObject.SetActive(true);
         this.FtueGameObject.transform.localPosition = originalFtueLocation;
         firstStep.transform.localPosition = originalFirstStepLocation;
-        secondStep.transform.localPosition = originalSecondStepLocation;
+    //    secondStep.transform.localPosition = originalSecondStepLocation;
         thirdStep.transform.localPosition = originalThirdStepLocation;
         fourthStep.transform.localPosition = originalFourthStepLocation;
         stepCount = 0;
@@ -280,7 +280,6 @@ public class FtueController : MonoBehaviour {
         ftueTimer.Reset();
         firstStep.SetActive(true);
         
-
 
         this.MainUI.transform.localPosition = originalMainUILocation;
         var c2 = LastStepImage.color;
@@ -292,17 +291,17 @@ public class FtueController : MonoBehaviour {
         var c4 = firstStepImage.color;
         firstStepImage.color = new Color(c4.r, c4.g, c4.b, 1);
 
-        var secondStepImage = secondStep.GetComponentInChildren<Image>();
-        c4 = secondStepImage.color;
-        secondStepImage.color = new Color(c4.r, c4.g, c4.b, 1);
+     //   var secondStepImage = secondStep.GetComponentInChildren<Image>();
+   //     c4 = secondStepImage.color;
+     //   secondStepImage.color = new Color(c4.r, c4.g, c4.b, 1);
 
         var thirdStepImage = thirdStep.GetComponentInChildren<Image>();
         c4 = thirdStepImage.color;
         thirdStepImage.color = new Color(c4.r, c4.g, c4.b, 1);
         fourthStep.SetActive(false);
-        secondStep.SetActive(false);
+     //   secondStep.SetActive(false);
         thirdStep.SetActive(false);
-        secondStepCheck.SetActive(false);
+      //  secondStepCheck.SetActive(false);
         thirdStepCheck.SetActive(false);
     }
 

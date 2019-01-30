@@ -210,10 +210,6 @@ public class SessionController : MonoBehaviour {
         data.ControllerStatus = SessionData.ControllerStatus;
         data.CategoryLog = SessionData.CategoryLogs;
 
-
-
-
-
         var json =  JsonUtility.ToJson(data);
         UnityEngine.Debug.Log(json);
         var reference = FirebaseDatabase.DefaultInstance.RootReference;

@@ -175,7 +175,7 @@ public class VideoOptionsController : MonoBehaviour {
             unmuteImage.gameObject.SetActive(true);
             muteButton.image = unmuteImage;
             volSlider.transform.localPosition = new Vector3(-370, originalLocation.y, originalLocation.z);
-            audioSource.volume = 0.01f;
+            audioSource.volume = 0.0f;
         }
         else
         {

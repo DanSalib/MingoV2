@@ -11,9 +11,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/MediaVR - Copy (2).unity
     guid: a2c65f8e7b597674da93084123debeb5
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/MediaVRReply.unity
     guid: 847ff0c5e54a95747a2485ac5f25831b
   - enabled: 0
     path: Assets/Scenes/MediaVRReply - Copy.unity
     guid: fa2d405906dc3be4ab4e3c6f3dee85ce
+  - enabled: 1
+    path: Assets/Scenes/MediaVROfficial.unity
+    guid: 95ab4d498a69ddd47a5bd30c35a80c06

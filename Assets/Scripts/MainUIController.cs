@@ -94,6 +94,10 @@ public class MainUIController : MonoBehaviour {
 
     public void ActivateUI(NavigationController.directions d)
     {
+        if (mediaController.IntermissionPlayer.isActiveAndEnabled)
+        {
+            return;
+        }
         if(CategoryUI.activeInHierarchy)
         {
             SleepTimer?.Reset();

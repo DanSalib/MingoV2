@@ -9,6 +9,7 @@ public class NavigationController : MonoBehaviour {
     public static event KeyPress OnKeyPress;
     public Text text;
     public VideoOptionsController videoOptions;
+    public MediaController mediaController;
 
     public MainUIController uiController;
     public bool ftueActive = true;
@@ -61,7 +62,7 @@ public class NavigationController : MonoBehaviour {
 
     private void ChangeCurPanel(directions d)
     {
-        if(ftueActive || uiController.disableButtons || uiController.isSleeping)
+        if(ftueActive || uiController.disableButtons || uiController.isSleeping || mediaController.IntermissionPlayer.isActiveAndEnabled)
         {
             return;
         }

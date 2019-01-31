@@ -9,6 +9,7 @@ public class VideoOptionsController : MonoBehaviour {
     public GameObject volControls;
     public GameObject volSlider;
     public GameObject background;
+    public AudioSource intermissionAudioSource;
     public AudioSource audioSource;
     private Coroutine curCoroutine;
 
@@ -132,7 +133,8 @@ public class VideoOptionsController : MonoBehaviour {
             || (volUp && originalLocation.x >= -263) 
             ? 0f : 18;
 
-        audioSource.volume += sign * mag * (0.14f / 18f);
+        var source = mediaController.Player.isActiveAndEnabled ? audioSource : intermissionAudioSource;
+        source.volume += sign * mag * (0.14f / 18f);
 
         Vector3 destination = new Vector3((sign * mag) + originalLocation.x, originalLocation.y, originalLocation.z);
 
@@ -166,6 +168,8 @@ public class VideoOptionsController : MonoBehaviour {
 
     public void MuteUnmute()
     {
+        var source = mediaController.Player.isActiveAndEnabled ? audioSource : intermissionAudioSource;
+
         Vector3 originalLocation = this.volSlider.transform.localPosition;
         if (!muted)
         {
@@ -175,12 +179,12 @@ public class VideoOptionsController : MonoBehaviour {
             unmuteImage.gameObject.SetActive(true);
             muteButton.image = unmuteImage;
             volSlider.transform.localPosition = new Vector3(-370, originalLocation.y, originalLocation.z);
-            audioSource.volume = 0.0f;
+            source.volume = 0.0f;
         }
         else
         {
             volSlider.transform.localPosition = new Vector3(prevSliderX, originalLocation.y, originalLocation.z);
-            audioSource.volume = prevVol;
+            source.volume = prevVol;
             muteImage.gameObject.SetActive(true);
             unmuteImage.gameObject.SetActive(false);
             muteButton.image = muteImage;

@@ -10,7 +10,7 @@ using Firebase.Unity.Editor;
 
 
 public class MediaController : MonoBehaviour {
-
+    public YoutubePlayer IntermissionPlayer;
     public YoutubePlayer Player;
     public GameObject loadingImage;
     public GameObject loadingIndicator;
@@ -121,8 +121,14 @@ public class MediaController : MonoBehaviour {
 
     public void SetVideoReady()
     {
-        SessionData.VidCount++;
-        StopCoroutine(curCoroutine);
+        if(Player.isActiveAndEnabled)
+        {
+            SessionData.VidCount++;
+        }
+        if (curCoroutine != null)
+        {
+            StopCoroutine(curCoroutine);
+        }
         loadingImage.SetActive(false);
         uiController.TeaseVideoOptions();
         isActuallyPlaying = true;
@@ -130,10 +136,18 @@ public class MediaController : MonoBehaviour {
         // videoReady = true;
     }
 
+    public bool ShouldIntermission()
+    {
+        return SessionData.VidCount > 1 && (SessionData.VidCount - 1) % 3 == 0;
+    }
+
+    public string GetNextIntermissionVideo()
+    {
+        return "HhdoPXNKNm4";
+    }
+
     public void OnVideoClick(VideoListItem video)
     {
- 
-
         if (video != null && video.Id != string.Empty)
         {
             Firebase.Analytics.FirebaseAnalytics.LogEvent("navigation", listController.curCategoryPanel.categoryId, SessionData.VidCount);
@@ -148,11 +162,49 @@ public class MediaController : MonoBehaviour {
             }
             curCoroutine = StartCoroutine(VideoLoading());
         }
+        if(ShouldIntermission())
+        {
+            IntermissionPlayer.gameObject.SetActive(true);
+            MatchIntermissionToPlayerAudio();
+            Player.gameObject.SetActive(false);
+        }
     }
 
     public void PlayPauseVideo()
     {
-        Player.PlayPause();
+        if (IntermissionPlayer.isActiveAndEnabled)
+        {
+            IntermissionPlayer.PlayPause();
+        } else
+        {
+            Player.PlayPause();
+        }
+
+    }
+
+    private void MatchPlayerToIntermissionAudio()
+    {
+        Player.GetComponent<AudioSource>().volume = IntermissionPlayer.GetComponent<AudioSource>().volume;
+    }
+
+    private void MatchIntermissionToPlayerAudio()
+    {
+        IntermissionPlayer.GetComponent<AudioSource>().volume = Player.GetComponent<AudioSource>().volume;
+    }
+
+    public void OnIntermissionFinish()
+    {
+        IntermissionPlayer.LoadYoutubeVideo(youtubeUrl + GetNextIntermissionVideo());
+        Player.gameObject.SetActive(true);
+        MatchPlayerToIntermissionAudio();
+        IntermissionPlayer.gameObject.SetActive(false);
+        isActuallyPlaying = false;
+        disableVideoOptions = true;
+        if (curCoroutine != null)
+        {
+            StopCoroutine(curCoroutine);
+        }
+        curCoroutine = StartCoroutine(VideoLoading());
     }
 
     private IEnumerator VideoLoading()

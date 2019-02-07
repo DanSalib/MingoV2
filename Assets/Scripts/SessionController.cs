@@ -45,6 +45,30 @@ public class SessionController : MonoBehaviour {
         CameraTimer.Start();
         LogTimer.Start();
         ControllerTimer.Start();
+        SetIntermissionVideos();
+    }
+
+    private void SetIntermissionVideos()
+    {
+        FirebaseDatabase.DefaultInstance.GetReference("Intermissions").GetValueAsync().ContinueWith(task =>
+        {
+            if(task.IsCompleted)
+            {
+                DataSnapshot snapshot = task.Result;
+                int i = 0;
+                foreach(var child in snapshot.Children)
+                {
+                    UnityEngine.Debug.Log("here1 " + child.Key + " " + child.Value);
+                    int startAt = 0;
+                    int.TryParse(child.Value.ToString(), out startAt);
+                    var vidInfo = new IntermissionVideoInfo(child.Key, startAt);
+                    UnityEngine.Debug.Log("here2");
+                    SessionData.IntermissionVideoIds.Add(vidInfo);
+                    UnityEngine.Debug.Log("here!!! " + SessionData.IntermissionVideoIds[i].VideoId + " "+ SessionData.IntermissionVideoIds[i].VideoStartTime);
+                    i++;
+                }
+            }
+        });
     }
 
     private void OnDestroy()

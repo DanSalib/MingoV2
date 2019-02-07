@@ -21,6 +21,8 @@ public static class SessionData {
 
     public static List<CategoryLog> CategoryLogs = new List<CategoryLog>();
 
+    public static List<IntermissionVideoInfo> IntermissionVideoIds = new List<IntermissionVideoInfo>();
+
 }
 
 [Serializable]

@@ -155,7 +155,7 @@ public class YoutubeVideoListCreator : MonoBehaviour
                             Id = videoItem.snippet.resourceId.videoId,
                             ThumbnailUrl = videoItem.snippet.thumbnails?.medium?.url ?? videoItem.snippet.thumbnails?.standard?.url
                         };
-                        Debug.Log(video.Title + " " + video.Id + " " + video.ThumbnailUrl);
+                       // Debug.Log(video.Title + " " + video.Id + " " + video.ThumbnailUrl);
                         CategoryVideos[key].Add(video);
                     }
                 }

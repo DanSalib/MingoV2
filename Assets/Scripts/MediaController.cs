@@ -39,6 +39,8 @@ public class MediaController : MonoBehaviour {
         samples = new float[qSamples];
         startingVidId = "cUrboDG8zYg";
         SessionController.OnSessionReset += ResetSimplePlayback;
+        IntermissionPlayer.startFromSecond = true;
+        IntermissionPlayer.startFromSecondTime = SessionData.IntermissionVideoIds[0].VideoStartTime;
     }
 
     public void ResetSimplePlayback()
@@ -141,9 +143,10 @@ public class MediaController : MonoBehaviour {
         return SessionData.VidCount > 1 && (SessionData.VidCount - 1) % 3 == 0;
     }
 
-    public string GetNextIntermissionVideo()
+    public IntermissionVideoInfo GetNextIntermissionVideo()
     {
-        return "HhdoPXNKNm4";
+        int vidIndex = (SessionData.VidCount - 1) / 3;
+        return SessionData.IntermissionVideoIds[vidIndex % (Mathf.Max(1, SessionData.IntermissionVideoIds.Count))];
     }
 
     public void OnVideoClick(VideoListItem video)
@@ -194,8 +197,11 @@ public class MediaController : MonoBehaviour {
 
     public void OnIntermissionFinish()
     {
-        IntermissionPlayer.LoadYoutubeVideo(youtubeUrl + GetNextIntermissionVideo());
         Player.gameObject.SetActive(true);
+        var intermissionVideo = GetNextIntermissionVideo();
+        IntermissionPlayer.LoadYoutubeVideo(youtubeUrl + intermissionVideo.VideoId);
+        IntermissionPlayer.startFromSecondTime = intermissionVideo.VideoStartTime;
+        IntermissionPlayer.startFromSecond = true;
         MatchPlayerToIntermissionAudio();
         IntermissionPlayer.gameObject.SetActive(false);
         isActuallyPlaying = false;

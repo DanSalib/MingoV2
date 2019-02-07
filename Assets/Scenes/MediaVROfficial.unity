@@ -1893,6 +1893,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   text: {fileID: 936577465}
   videoOptions: {fileID: 1792632700}
+  mediaController: {fileID: 1956402930}
   uiController: {fileID: 180323985}
   ftueActive: 1
   backIndicator: {fileID: 1482828045}
@@ -13976,7 +13977,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 42.6, y: 28.9}
-  m_SizeDelta: {x: 1194.8, y: 418.36}
+  m_SizeDelta: {x: 1195.5, y: 418.36}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1645841680
 MonoBehaviour:

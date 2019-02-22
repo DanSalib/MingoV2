@@ -115,6 +115,8 @@ public class FtueController : MonoBehaviour {
         NavController.ftueActive = false;
         FtueGameObject.SetActive(false);
         curCoroutine = null;
+        uiController.SleepTimer.Restart();
+
     }
 
     private IEnumerator FadeOutFtue()
@@ -314,7 +316,6 @@ public class FtueController : MonoBehaviour {
         Firebase.Analytics.FirebaseAnalytics.LogEvent("session", "sessionStart", 1);
         sessionController.waitingForNextSession = false;
         sessionController.vuforiaBehaviour.enabled = true;
-        uiController.SleepTimer.Start();
         StartCoroutine(FadeOutFtue());
     }
 }

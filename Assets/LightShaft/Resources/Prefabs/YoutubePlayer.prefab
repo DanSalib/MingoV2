@@ -421,7 +421,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1772448583512120
 GameObject:
   m_ObjectHideFlags: 1
@@ -576,7 +576,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4612107834803494
 Transform:
   m_ObjectHideFlags: 1
@@ -610,8 +610,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1836629090467318}
   m_LocalRotation: {x: -0, y: -0.7071068, z: 0.70710677, w: 0}
-  m_LocalPosition: {x: 43.6, y: -24.51001, z: 3}
-  m_LocalScale: {x: 25.8, y: 1, z: 7.6000013}
+  m_LocalPosition: {x: 0, y: -2.4, z: 3.86}
+  m_LocalScale: {x: 2.0037186, y: 0.9999998, z: 0.9999998}
   m_Children:
   - {fileID: 4660489945396784}
   - {fileID: 4613927894534348}
@@ -698,7 +698,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.4
+  m_Volume: 1
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1737,12 +1737,12 @@ MonoBehaviour:
   decryptedAudioUrlResult: 
   EncryptUrlForVideo: 
   EncryptUrlForAudio: 
-  youtubeUrl: https://www.youtube.com/watch?v=PMVAi1j9TQ0
-  videoQuality: 1
+  youtubeUrl: https://youtu.be/mDFBTdToRmw
+  videoQuality: 2
   startFromSecond: 0
   startFromSecondTime: 0
-  autoPlayOnStart: 0
-  autoPlayOnEnable: 1
+  autoPlayOnStart: 1
+  autoPlayOnEnable: 0
   loadYoutubeUrlsOnly: 0
   is3DLayoutVideo: 0
   layout3d: 0
@@ -1756,18 +1756,7 @@ MonoBehaviour:
       Culture=neutral, PublicKeyToken=null
   OnVideoReadyToStart:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 0}
-        m_MethodName: SetVideoReady
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
     m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
   OnVideoStarted:
@@ -1800,6 +1789,7 @@ MonoBehaviour:
   currentTimeString: {fileID: 114779305133119110}
   totalTimeString: {fileID: 114095130443924696}
   isSyncing: 0
+  showThumbnailBeforeVideoLoad: 0
 --- !u!222 &222006578768443584
 CanvasRenderer:
   m_ObjectHideFlags: 1
@@ -2227,7 +2217,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2282,7 +2272,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}

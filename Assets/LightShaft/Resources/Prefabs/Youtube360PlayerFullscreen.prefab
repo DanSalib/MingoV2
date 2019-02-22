@@ -1478,6 +1478,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e7418089f4181645b5df8f90e317bf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  encryptedSignatureVideo: 
+  encryptedSignatureAudio: 
+  decryptedUrlForVideo: 0
+  decryptedUrlForAudio: 0
+  decryptedVideoUrlResult: 
+  decryptedAudioUrlResult: 
+  EncryptUrlForVideo: 
+  EncryptUrlForAudio: 
   youtubeUrl: https://www.youtube.com/watch?v=krxX4HZp3Lc
   videoQuality: 2
   startFromSecond: 0
@@ -1485,6 +1493,8 @@ MonoBehaviour:
   autoPlayOnStart: 1
   autoPlayOnEnable: 0
   loadYoutubeUrlsOnly: 0
+  is3DLayoutVideo: 0
+  layout3d: 0
   videoControllerCanvas: {fileID: 1323464631540386}
   mainCamera: {fileID: 0}
   loadingContent: {fileID: 1357379477671408}
@@ -1528,6 +1538,7 @@ MonoBehaviour:
   currentTimeString: {fileID: 114258306352647988}
   totalTimeString: {fileID: 114089316742508968}
   isSyncing: 0
+  showThumbnailBeforeVideoLoad: 0
 --- !u!114 &114706671487630268
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -1562,6 +1562,8 @@ MonoBehaviour:
   autoPlayOnStart: 1
   autoPlayOnEnable: 0
   loadYoutubeUrlsOnly: 0
+  is3DLayoutVideo: 0
+  layout3d: 0
   videoControllerCanvas: {fileID: 1540205013454094}
   mainCamera: {fileID: 0}
   loadingContent: {fileID: 1277276517377164}
@@ -1605,6 +1607,7 @@ MonoBehaviour:
   currentTimeString: {fileID: 114853991327469938}
   totalTimeString: {fileID: 114475783943496068}
   isSyncing: 0
+  showThumbnailBeforeVideoLoad: 0
 --- !u!114 &114883297642595056
 MonoBehaviour:
   m_ObjectHideFlags: 1

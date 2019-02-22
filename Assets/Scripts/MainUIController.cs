@@ -52,22 +52,27 @@ public class MainUIController : MonoBehaviour {
     }
     // Update is called once per frame
     void Update () {
-        if (firstTime && CategoryUI.activeInHierarchy && SleepTimer?.ElapsedMilliseconds > 7000f)
+        if (firstTime && SleepTimer?.ElapsedMilliseconds > 7000f)
         {
             firstTime = false;
             NavController.indicator.SetActive(false);
             StartCoroutine(CenterVideo());
-            StartCoroutine(FadeCategories());
+            if (CategoryUI.activeInHierarchy)
+            {
+                StartCoroutine(FadeCategories());
+            }
             isSleeping = true;
             SleepTimer.Stop();
             SleepTimer.Reset();
         }
-        else if (!firstTime && CategoryUI.activeInHierarchy && SleepTimer?.ElapsedMilliseconds > 3500f)
+        else if (!firstTime && SleepTimer?.ElapsedMilliseconds > 3500f)
         {
             NavController.indicator.SetActive(false);
             StartCoroutine(CenterVideo());
-            StartCoroutine(FadeCategories());
-            StartCoroutine(FadeCategories());
+            if (CategoryUI.activeInHierarchy)
+            {
+                StartCoroutine(FadeCategories());
+            }
             isSleeping = true;
             SleepTimer.Stop();
             SleepTimer.Reset();
@@ -98,12 +103,15 @@ public class MainUIController : MonoBehaviour {
         {
             return;
         }
-        if(CategoryUI.activeInHierarchy)
+        else
         {
+            StartCoroutine(MoveVidToTop());
             SleepTimer?.Reset();
             SleepTimer?.Start();
-            StartCoroutine(MoveVidToTop());
-            StartCoroutine(UnfadeCategories());
+            if (CategoryUI.activeInHierarchy)
+            {
+                StartCoroutine(UnfadeCategories());
+            }
         }
     }
 
@@ -126,8 +134,7 @@ public class MainUIController : MonoBehaviour {
 
     public void ShowListUI(PanelController panel)
     {
-        SleepTimer?.Stop();
-        SleepTimer?.Reset();
+        SleepTimer?.Restart();
         disableButtons = true;
         NavController.curPanel = ListController.VideoList[0].gameObject.GetComponent<NavObject>();
         VideoListUI.SetActive(true);
@@ -145,8 +152,7 @@ public class MainUIController : MonoBehaviour {
         StartCoroutine(HideVideos());
         if(vid != null)
         {
-            StartCoroutine(ShowFadedCategories());
-            StartCoroutine(CenterVideo());
+            StartCoroutine(ShowFadedCategoriesThenCenterVideo());
         }
         else
         {
@@ -157,20 +163,29 @@ public class MainUIController : MonoBehaviour {
 
     }
 
+    private IEnumerator ShowFadedCategoriesThenCenterVideo()
+    {
+        yield return ShowFadedCategories();
+        yield return CenterVideo();
+    }
+
     private IEnumerator CenterVideo()
     {
         int rate = 4;
         float t = 0;
 
         Vector3 originalLocation = this.MediaUI.transform.localPosition;
+        Vector3 listOriginalLocation = this.VideoListUI.transform.localPosition;
         Button[] buttons = this.MediaUI.GetComponentsInChildren<Button>();
         Vector3 destination = new Vector3(originalLocation.x, -160f, originalLocation.z);
+        Vector3 listDestination = new Vector3(listOriginalLocation.x, listOriginalLocation.y - (originalLocation.y + 160f), listOriginalLocation.z);
 
         while (t < 1)
         {
             t += Time.deltaTime * rate;
 
             this.MediaUI.transform.localPosition = Vector3.Lerp(originalLocation, destination, t);
+            this.VideoListUI.transform.localPosition = Vector3.Lerp(listOriginalLocation, listDestination, t);
 
             yield return null;
         }
@@ -187,14 +202,21 @@ public class MainUIController : MonoBehaviour {
         Button[] buttons = this.MediaUI.GetComponentsInChildren<Button>();
         Vector3 destination = new Vector3(originalLocation.x, 0, originalLocation.z);
 
+        Vector3 listOriginalLocation = this.VideoListUI.transform.localPosition;
+        Vector3 listDestination = new Vector3(listOriginalLocation.x, -41.19f, listOriginalLocation.z);
+
         while (t < 1)
         {
             t += Time.deltaTime * rate;
 
             this.MediaUI.transform.localPosition = Vector3.Lerp(originalLocation, destination, t);
+            this.VideoListUI.transform.localPosition = Vector3.Lerp(listOriginalLocation, listDestination, t);
 
             yield return null;
         }
+
+        isSleeping = false;
+        NavController.moveIndicator();
     }
 
     private IEnumerator HideCategories()

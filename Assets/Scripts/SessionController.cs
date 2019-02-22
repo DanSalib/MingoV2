@@ -8,6 +8,7 @@ using Firebase;
 using Firebase.Database;
 using Firebase.Unity.Editor;
 using System;
+using System.Net.NetworkInformation;
 
 public class SessionController : MonoBehaviour {
 
@@ -17,6 +18,7 @@ public class SessionController : MonoBehaviour {
     public Stopwatch ControllerTimer = new Stopwatch();
 
     public NavigationController navController;
+    public NotificationController NotificationController;
 
     public VuforiaBehaviour vuforiaBehaviour;
     public float sessionTimeout;
@@ -55,17 +57,12 @@ public class SessionController : MonoBehaviour {
             if(task.IsCompleted)
             {
                 DataSnapshot snapshot = task.Result;
-                int i = 0;
                 foreach(var child in snapshot.Children)
                 {
-                    UnityEngine.Debug.Log("here1 " + child.Key + " " + child.Value);
                     int startAt = 0;
                     int.TryParse(child.Value.ToString(), out startAt);
                     var vidInfo = new IntermissionVideoInfo(child.Key, startAt);
-                    UnityEngine.Debug.Log("here2");
                     SessionData.IntermissionVideoIds.Add(vidInfo);
-                    UnityEngine.Debug.Log("here!!! " + SessionData.IntermissionVideoIds[i].VideoId + " "+ SessionData.IntermissionVideoIds[i].VideoStartTime);
-                    i++;
                 }
             }
         });
@@ -83,6 +80,11 @@ public class SessionController : MonoBehaviour {
         {
             SessionTimer.Reset();
             ResetSession();
+        }
+
+        if(LogTimer.IsRunning && LogTimer.ElapsedMilliseconds > 10000 && (LogTimer.ElapsedMilliseconds % 60000) >= 0 && (LogTimer.ElapsedMilliseconds) % 60000 <= 10)
+        {
+            NotificationController.ShowNotification("Please remember to keep your mouth open wide");
         }
 
         if (waitingForNextSession && vuforiaBehaviour.enabled == false && (Input.GetKeyDown(KeyCode.V) || (accelerations.Count > 120 && !IsLast120AccelSame())))
@@ -217,6 +219,32 @@ public class SessionController : MonoBehaviour {
 
         public List<CategoryLog> CategoryLog;
 
+        public string MAC;
+
+    }
+
+    public string GetMacAddress()
+    {
+        IPGlobalProperties computerProperties = IPGlobalProperties.GetIPGlobalProperties();
+        NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+        string info = "";
+
+        foreach (NetworkInterface adapter in nics)
+        {
+            PhysicalAddress address = adapter.GetPhysicalAddress();
+            byte[] bytes = address.GetAddressBytes();
+            string mac = null;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                mac = string.Concat(mac + (string.Format("{0}", bytes[i].ToString("X2"))));
+                if (i != bytes.Length - 1)
+                {
+                    mac = string.Concat(mac + "-");
+                }
+            }
+            info += mac + "/";
+        }
+        return info;
     }
 
     public void  ResetSession()
@@ -233,6 +261,7 @@ public class SessionController : MonoBehaviour {
         data.SessionEnd = SessionData.SessionEnd.ToString();
         data.ControllerStatus = SessionData.ControllerStatus;
         data.CategoryLog = SessionData.CategoryLogs;
+        data.MAC = GetMacAddress();
 
         var json =  JsonUtility.ToJson(data);
         UnityEngine.Debug.Log(json);

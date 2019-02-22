@@ -201,6 +201,22 @@ public class YoutubePlayer : RequestResolver
         else
             lowRes = false;
 
+
+        
+    }
+
+    private void TryToLoadThumbnailBeforeOpenVideo(string id)
+    {
+        string tempId = id.Replace("https://youtube.com/watch?v=", "");
+        StartCoroutine(DownloadThumbnail(tempId));
+    }
+
+    IEnumerator DownloadThumbnail(string videoId)
+    {
+        WWW www = new WWW("https://img.youtube.com/vi/" + videoId + "/0.jpg");
+        yield return www;
+        Texture2D thumb = www.texture;
+        videoPlayer.targetMaterialRenderer.material.mainTexture = thumb;
     }
 
     private void Skybox3DSettup()
@@ -467,6 +483,9 @@ public class YoutubePlayer : RequestResolver
     private void PlayYoutubeVideo(string _videoId)
     {
         _videoId = CheckVideoUrlAndExtractThevideoId(_videoId);
+        //Thumbnail
+        if (showThumbnailBeforeVideoLoad)
+            TryToLoadThumbnailBeforeOpenVideo(_videoId);
         youtubeUrlReady = false;
         //Show loading
         ShowLoading();
@@ -551,7 +570,6 @@ public class YoutubePlayer : RequestResolver
             {
                 if (info.VideoType == VideoType.Mp4 && info.Resolution == (360))
                 {
-
                     if (info.RequiresDecryption)
                     {
                         //The string is the video url with audio
@@ -1697,4 +1715,8 @@ public class YoutubePlayer : RequestResolver
     #endregion
     [HideInInspector]
     public bool isSyncing = false;
+
+    [Header("Experimental")]
+    public bool showThumbnailBeforeVideoLoad = false;
+    private string thumbnailVideoID;
 }

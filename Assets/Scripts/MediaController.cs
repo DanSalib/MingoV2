@@ -10,6 +10,7 @@ using Firebase.Unity.Editor;
 
 
 public class MediaController : MonoBehaviour {
+    public NotificationController NotificationController;
     public YoutubePlayer IntermissionPlayer;
     public YoutubePlayer Player;
     public GameObject loadingImage;
@@ -39,8 +40,6 @@ public class MediaController : MonoBehaviour {
         samples = new float[qSamples];
         startingVidId = "cUrboDG8zYg";
         SessionController.OnSessionReset += ResetSimplePlayback;
-        IntermissionPlayer.startFromSecond = true;
-        IntermissionPlayer.startFromSecondTime = SessionData.IntermissionVideoIds[0].VideoStartTime;
     }
 
     public void ResetSimplePlayback()
@@ -76,7 +75,14 @@ public class MediaController : MonoBehaviour {
         }
         
         disableVideoOptions = true;
- 
+        IntermissionPlayer.gameObject.SetActive(true);
+        if(SessionData.IntermissionVideoIds.Count > 0)
+        {
+            IntermissionPlayer.LoadYoutubeVideo(youtubeUrl + SessionData.IntermissionVideoIds[0].VideoId);
+            IntermissionPlayer.startFromSecondTime = SessionData.IntermissionVideoIds[0].VideoStartTime;
+        }
+        IntermissionPlayer.gameObject.SetActive(false);
+
         if (curCoroutine != null)
         {
             StopCoroutine(curCoroutine);
@@ -165,9 +171,11 @@ public class MediaController : MonoBehaviour {
             }
             curCoroutine = StartCoroutine(VideoLoading());
         }
-        if(ShouldIntermission())
+        if(ShouldIntermission() && SessionData.IntermissionVideoIds.Count > 0)
         {
+            NotificationController.ShowNotification("A hygiene tip from your dentist...");
             IntermissionPlayer.gameObject.SetActive(true);
+            IntermissionPlayer.LoadYoutubeVideo(IntermissionPlayer.youtubeUrl);
             MatchIntermissionToPlayerAudio();
             Player.gameObject.SetActive(false);
         }
@@ -201,7 +209,6 @@ public class MediaController : MonoBehaviour {
         var intermissionVideo = GetNextIntermissionVideo();
         IntermissionPlayer.LoadYoutubeVideo(youtubeUrl + intermissionVideo.VideoId);
         IntermissionPlayer.startFromSecondTime = intermissionVideo.VideoStartTime;
-        IntermissionPlayer.startFromSecond = true;
         MatchPlayerToIntermissionAudio();
         IntermissionPlayer.gameObject.SetActive(false);
         isActuallyPlaying = false;

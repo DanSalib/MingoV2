@@ -87,8 +87,11 @@ public class YoutubeVideoListCreator : MonoBehaviour
              }
              else
              {
-                 CategoryIdToThumbnails[categoryId].Add(listItem.Id, ((DownloadHandlerTexture)www.downloadHandler)?.texture);
-             }
+                if (!CategoryIdToThumbnails[categoryId].ContainsKey(listItem.Id))
+                {
+                    CategoryIdToThumbnails[categoryId].Add(listItem.Id, ((DownloadHandlerTexture)www.downloadHandler)?.texture);
+                }
+            }
          }
         yield return null;
     }
